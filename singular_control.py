@@ -42,9 +42,4 @@ while True:
         time.sleep(tT) # wait for the temperature to increase by 1 with tT
         
         relay_status == "off"
-        send_relay_signal(relay_status, relays)  
-        
-        
-    
-    
-        
+        send_relay_signal(relay_status, relays)

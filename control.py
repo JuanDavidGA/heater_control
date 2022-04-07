@@ -139,7 +139,12 @@ def recieve_temp_data():
         
         host_conv_val = int.from_bytes(host, "big")
         sensor_name = name_sensor(host_conv_val)
-        sensor_data = int(msg.decode("utf-8"))
+        
+        try:
+            sensor_data = int(msg.decode("utf-8"))/100000
+        except ValueError:
+            pass
+        
         temp_value = get_temp(sensor_name, sensor_data)
         print(sensor_name + ": " + int(sensor_data))
         
@@ -166,4 +171,16 @@ def tTotal_timer_callback(t):
     relay_status = "off"   
     control_signal = "on"
     send_relay_signal(relay_status, relays)
+    
+
+def cel_to_fah(tc):
+    tf = (9/5) * tc + 32
+    tfs = str("%.2f" % tf)
+    t1 = int(tfs[3])
+    t2 = int(tfs[4])
+    if (t1 >= 7 and t2 >= 5):
+        tf = math.ceil(tf)
+    else:
+        tf = math.floor(tf)
+    return tf
 
