@@ -15,7 +15,7 @@ global control_signal
 control_signal = "off"
 global data
 data = []
-temp_value = [0,0,0]
+temp_value = [0,0,0,0,0,0]
 
 # A WLAN interface must be active to send()/recv()
 w0 = network.WLAN(network.STA_IF)
