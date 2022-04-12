@@ -2,7 +2,7 @@
 
 import network
 from esp import espnow
-
+import math
 
 #Adding components to master's communication protocol
 def add_peer(comp_list):
@@ -18,7 +18,7 @@ global control_signal
 control_signal = "off"
 global data
 data = []
-temp_value = [0,0,0,0,0,0]
+temp_value = [0,0,0]
 
 
 # A WLAN interface must be active to send()/recv()
@@ -37,8 +37,8 @@ temp_sensors = { 'temp_sensor_1' : b'\x94\x3c\xc6\x6d\x17\x70', 'temp_sensor_2' 
                  'temp_sensor_5' : b'\x94\x3c\xc6\x6d\x27\x7c', 'temp_sensor_6' : b'\x94\x3c\xc6\x6d\x1f\x1c'}
 
 # MAC addresses of relays' wifi interfaces
-relays = {'relay_1' : b'\x94\x3c\xc6\x6d\x15\x40', 'relay_2' : b'\x94\x3c\xc6\x6d\x29\xd4', 
-          'relay_3' : b'\x94\x3c\xc6\x6d\x14\x74', 'relay_4' : b'\x94\x3c\xc6\x6d\x29\xec'}
+relays = {'1' : b'\x94\x3c\xc6\x6d\x15\x40', '2' : b'\x94\x3c\xc6\x6d\x29\xd4', 
+          '3' : b'\x94\x3c\xc6\x6d\x14\x74', '4' : b'\x94\x3c\xc6\x6d\x29\xec'}
 
 
 # Adding temperature sensors and relays to master's communication protocol
@@ -50,7 +50,8 @@ add_peer(relays)
 def calculate_tss(temp1, temp2, temp3):
     
     tss = (temp1 + temp2 + temp3)/3
-    return tss
+    tss_to_fareingth = cel_to_fah(tss)  
+    return tss_to_fareingth
 
 
 # Fucntion that calcuate tind, which is the amount by which temperature has to
@@ -89,16 +90,15 @@ def name_sensor(int_val):
     if (int_val == 162988747990804):
         temp_sensor_name = "sensor 3"
     
-    """
-    if (int_val == ):
+    if (int_val == 162988747986428):
         temp_sensor_name = "sensor 4"
         
-    if (int_val == ):
+    if (int_val == 162988747990908):
         temp_sensor_name = "sensor 5"
         
-    if (int_val == ):
+    if (int_val == 162988747988764):
         temp_sensor_name = "sensor 6"
-    """
+
     return temp_sensor_name   
 
 
@@ -161,27 +161,69 @@ def recieve_temp_data():
 
     
 # Function to send relay signal with the use of the relay status      
-def send_relay_signal(status, relays):
+def send_relay_signal(status, relays, current_status, triangle):
     
     if status == "on": 
 
-        e.send(relays['relay_1'], str(1), True)
-        e.send(relays['relay_1'], str(1), True)
-        e.send(relays['relay_1'], str(1), True)
-    
+        e.send(relays['1'], str(1), True)
+        e.send(relays['2'], str(1), True)
+        e.send(relays['3'], str(1), True)
+        e.send(relays['4'], str(1), True)
+        current_status = [1, 1, 1, 1, 0]
+        
     elif status == "off": 
          
-        e.send(relays['relay_1'], str(0), True) 
-        e.send(relays['relay_2'], str(0), True)
-        e.send(relays['relay_3'], str(0), True)
-     
-    return
+        e.send(relays['1'], str(0), True) 
+        e.send(relays['2'], str(0), True)
+        e.send(relays['3'], str(0), True)
+        e.send(relays['4'], str(0), True)
+        current_status = [0, 0, 0, 0, 0]
 
+       
+    elif status == "soft_turn_on":
+        
+        if current_status[4] == 2: #Means hard turn_on is active
+            
+            for value in triangle:
+            
+                e.send(relays[str(value)], str(1), True) 
+                e.send(relays[str(value)], str(0), True)
+                e.send(relays[str(value)], str(0), True)
+
+        else:
+            
+            for value in triangle:
+                
+                e.send(relays[str(value)], str(1), True) 
+                e.send(relays[str(value)], str(1), True)
+                e.send(relays[str(value)], str(1), True)
+    
+    elif status == "soft_turn_off":
+        
+        for value in triangle:
+            
+            e.send(relays[str(value)], str(1), True) 
+            e.send(relays[str(value)], str(0), True)
+            e.send(relays[str(value)], str(0), True)
+            current_status = [0, 0, 0, 0, 2]
+                
+    elif status == "hard_turn_off":
+        
+        for value in triangle:
+            
+            e.send(relays[str(value)], str(0), True) 
+            e.send(relays[str(value)], str(0), True)
+            e.send(relays[str(value)], str(0), True)
+            current_status = [0, 0, 0, 0, 2]
+
+        
+    return current_status
+        
 
 # Function that sets the relay status to off when tTotal is done
 def tTotal_timer_callback(t):  
      
-    relay_status = "off"   
+    relay_status = "off"  
     control_signal = "on"
     send_relay_signal(relay_status, relays)
     
@@ -206,8 +248,24 @@ def cel_to_fah(tc):
 def data_gathering_callback(t):  
     data.append(1)
     return
+
+
+# Fucnction that make sure we gett all the sensor value before calculation
+def sensor_value_check(temp_value):
     
+    check = "True" 
+    for value in temp_value:
+        
+         if value == 0:
+             
+            check = "False"
+            break
     
+    return check
+
+
+# Function that calculate when a  
+ 
 # Function to send relay signal with the use of the relay status      
 def send_relay_signal_test(data, relays):
     
