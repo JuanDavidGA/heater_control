@@ -188,6 +188,7 @@ def cel_to_fah(tc):
 # Function that sets the relay status to off when tTotal is done
 def data_gathering_callback(t):  
     data.append(1)
+    return
     
 # Function to send relay signal with the use of the relay status      
 def send_relay_signal_test(data, relays):
