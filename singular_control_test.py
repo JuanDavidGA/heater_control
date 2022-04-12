@@ -11,6 +11,11 @@ tdss = 76
 
 # Initial calculations to get time values 
 temp_value = recieve_temp_data()
+
+#Check that all sensors are working 
+while sensor_value_check(temp_value) == "False":    
+    temp_value = recieve_temp_data()
+    
 tT = calcuate_tT(t1, t2, t3)
 tss = calculate_tss(temp_value[0], temp_value[1], temp_value[2])  
 tind = calculate_tind(tdss, tss)
@@ -22,7 +27,7 @@ tTotal = calculate_tTotal(tind, tT)
 
 #Initialize tTotal timer interupt to achieve desired temperature 
 tTotal_timer = Timer(4)
-tTotal_timer.init(mode = Timer.PERIODIC, period = 20 * 60000, callback = data_gathering_callback)
+tTotal_timer.init(mode = Timer.PERIODIC, period = 2 * 60000, callback = data_gathering_callback)
 
 
 # Begin the control 
@@ -56,7 +61,6 @@ while True:
     
     print("Temperature value: " + str(temp_value))
     print("Tss value: " + str(tss))
-    print(len(data))
     sleep(1)
         
         
