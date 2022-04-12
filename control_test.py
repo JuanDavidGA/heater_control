@@ -9,6 +9,9 @@ def add_peer(comp_list):
     
     for peers in comp_list:
         e.add_peer(comp_list[peers])
+    
+    return
+
 
 global relay_status
 global control_signal
@@ -17,13 +20,16 @@ global data
 data = []
 temp_value = [0,0,0,0,0,0]
 
+
 # A WLAN interface must be active to send()/recv()
 w0 = network.WLAN(network.STA_IF)
 w0.active(True)
 
+
 # ESP protocol initalization
 e = espnow.ESPNow()
 e.init()
+
 
 # MAC addresses of temperature sensors' wifi interfaces
 temp_sensors = { 'temp_sensor_1' : b'\x94\x3c\xc6\x6d\x17\x70', 'temp_sensor_2' : b'\x94\x3c\xc6\x6d\x1b\x68',
@@ -34,9 +40,12 @@ temp_sensors = { 'temp_sensor_1' : b'\x94\x3c\xc6\x6d\x17\x70', 'temp_sensor_2' 
 relays = {'relay_1' : b'\x94\x3c\xc6\x6d\x15\x40', 'relay_2' : b'\x94\x3c\xc6\x6d\x29\xd4', 
           'relay_3' : b'\x94\x3c\xc6\x6d\x14\x74', 'relay_4' : b'\x94\x3c\xc6\x6d\x29\xec'}
 
+
 # Adding temperature sensors and relays to master's communication protocol
 add_peer(temp_sensors)
 add_peer(relays)
+
+
 # Fucntion that calcuate tss, which is the measured temperature at a special spot
 def calculate_tss(temp1, temp2, temp3):
     
@@ -60,8 +69,8 @@ def calcuate_tT(t1, t2, t3):
     return tT
 
 
- # Fucntion that calcuate tTotal, which is the total time required to reach a special
- # spot desired temperature
+# Fucntion that calcuate tTotal, which is the total time required to reach a special
+# spot desired temperature
 def calculate_tTotal(tind, tT):
     
     tTotal = tind * tT
@@ -91,6 +100,7 @@ def name_sensor(int_val):
         temp_sensor_name = "sensor 6"
     """
     return temp_sensor_name   
+
 
 ## Function that assign a sent temperature to the particular sensor number that sent it 
 def get_temp(sensor_name, sensor_data):
@@ -148,7 +158,8 @@ def recieve_temp_data():
         print(sensor_name + ": " + str(sensor_data))
         
         return temp_value
-         
+
+    
 # Function to send relay signal with the use of the relay status      
 def send_relay_signal(status, relays):
     
@@ -164,7 +175,9 @@ def send_relay_signal(status, relays):
         e.send(relays['relay_2'], str(0), True)
         e.send(relays['relay_3'], str(0), True)
      
-     
+    return
+
+
 # Function that sets the relay status to off when tTotal is done
 def tTotal_timer_callback(t):  
      
@@ -172,8 +185,11 @@ def tTotal_timer_callback(t):
     control_signal = "on"
     send_relay_signal(relay_status, relays)
     
+    return
+
 
 def cel_to_fah(tc):
+    
     tf = (9/5) * tc + 32
     tfs = str("%.2f" % tf)
     t1 = int(tfs[3])
@@ -182,6 +198,7 @@ def cel_to_fah(tc):
         tf = math.ceil(tf)
     else:
         tf = math.floor(tf)
+    
     return tf
 
 
@@ -189,6 +206,7 @@ def cel_to_fah(tc):
 def data_gathering_callback(t):  
     data.append(1)
     return
+    
     
 # Function to send relay signal with the use of the relay status      
 def send_relay_signal_test(data, relays):
@@ -241,4 +259,5 @@ def send_relay_signal_test(data, relays):
         e.send(relays['relay_2'], str(0), True)
         e.send(relays['relay_3'], str(0), True)
         e.send(relays['relay_4'], str(0), True)
-     
+
+    return
