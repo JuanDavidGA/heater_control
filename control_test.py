@@ -178,17 +178,13 @@ def send_relay_signal(status, relays, current_status, triangle):
         e.send(relays['3'], str(0), True)
         e.send(relays['4'], str(0), True)
         current_status = [0, 0, 0, 0, 0]
-
-       
+ 
     elif status == "soft_turn_on":
         
-        if current_status[4] == 2: #Means hard turn_on is active
+        if current_status[4] == 1: #Means hard turn_on is active
             
-            for value in triangle:
-            
-                e.send(relays[str(value)], str(1), True) 
-                e.send(relays[str(value)], str(0), True)
-                e.send(relays[str(value)], str(0), True)
+            e.send(relays[str(triangle[0])], str(1), True) 
+            current_status[triangle[0] - 1] = 1
 
         else:
             
@@ -197,15 +193,13 @@ def send_relay_signal(status, relays, current_status, triangle):
                 e.send(relays[str(value)], str(1), True) 
                 e.send(relays[str(value)], str(1), True)
                 e.send(relays[str(value)], str(1), True)
+                current_status[value - 1] = [1]
+
     
     elif status == "soft_turn_off":
         
-        for value in triangle:
-            
-            e.send(relays[str(value)], str(1), True) 
-            e.send(relays[str(value)], str(0), True)
-            e.send(relays[str(value)], str(0), True)
-            current_status = [0, 0, 0, 0, 2]
+        e.send(relays[str(triangle[0])], str(0), True) 
+        current_status[triangle[0] - 1] = 0
                 
     elif status == "hard_turn_off":
         
@@ -214,7 +208,9 @@ def send_relay_signal(status, relays, current_status, triangle):
             e.send(relays[str(value)], str(0), True) 
             e.send(relays[str(value)], str(0), True)
             e.send(relays[str(value)], str(0), True)
-            current_status = [0, 0, 0, 0, 2]
+            current_status[value - 1] = [0]
+        
+        current_status[4] = 1
 
         
     return current_status
